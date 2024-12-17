@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RAG Pipeline</title>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+</head>
+<body>
+    <h1>Retrieval-Augmented Generation Pipeline</h1>
+    
+    <h2>Ingest Data</h2>
+    <input type="text" id="urls" placeholder="Enter URLs separated by commas">
+    <button id="ingest-btn">Ingest</button>
+    
+    <h2>Query Data</h2>
+    <input type="text" id="query" placeholder="Enter your query">
+    <button id="query-btn">Query</button>
+    
+    <h2>Process Image</h2>
+    <input type="file" id="image" accept="image/*">
+    <button id="process-image-btn">Process Image</button>
+    
+    <h2>Feedback</h2>
+    <textarea id="feedback" placeholder="Provide your feedback here..."></textarea>
+    <button id="feedback-btn">Submit Feedback</button>
+    
+    <div id="response"></div>
+
+    <script>
+        $('#ingest-btn').click(function() {
+            const urls = $('#urls').val().split(',');
+            $.post('/ingest', JSON.stringify({ urls: urls }), function(data) {
+                $('#response').text(data.message);
+            }, 'json').fail(function(xhr) {
+                $('#response').text(xhr.responseJSON.message);
+            });
+        });
+
+        $('#query-btn').click(function() {
+            const query = $('#query').val();
+            $.post('/query', JSON.stringify({ query: query }), function(data) {
+                $('#response').text(data.response);
+            }, 'json').fail(function(xhr) {
+                $('#response').text(xhr.responseJSON.message);
+            });
+        });
+
+        $('#process-image-btn').click(function() {
+            const file = $('#image')[0].files[0];
+            const formData = new FormData();
+            formData.append('image', file);
+            $.ajax({
+                url: '/process_image',
+                type: 'POST',
+                data: formData,
+                processData: false,
+                contentType: false,
+                success: function(data) {
+                    $('#response').text(data.status);
+                },
+                error: function(xhr) {
+                    $('#response').text(xhr.responseJSON.message);
+                }
+            });
+        });
+
+        $('#feedback-btn').click(function() {
+            const feedback = $('#feedback').val();
+            $.post('/feedback', JSON.stringify({ feedback: feedback }), function(data) {
+                $('#response').text(data.message);
+            }, 'json').fail(function(xhr) {
+                $('#response').text(xhr.responseJSON.message);
+            });
+        });
+    </script>
+</body>
+</html>
